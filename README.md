@@ -76,7 +76,7 @@ Summary:
 ```
 We can also test the overlay connectivity by connecting to the different simulated clients:
 ```bash
-docker exec -it clab-polyglot-cli-srl bash
+docker exec -it cli-srl bash
 
 [*]─[cli-srl]─[/]
 └──> ping 10.10.10.2
