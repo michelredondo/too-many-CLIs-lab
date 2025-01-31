@@ -1,0 +1,86 @@
+interfaces {
+    ge-0/0/0 {
+        unit 0 {
+            family inet {
+                address 192.168.1.7/31;
+            }
+        }
+    }
+    ge-0/0/1 {
+        vlan-tagging;
+        encapsulation flexible-ethernet-services;
+        unit 0 {
+            encapsulation vlan-bridge;
+            vlan-id 10;
+        }
+    }
+    lo0 {
+        unit 0 {
+            family inet {
+                address 192.168.255.5/32;
+            }
+        }
+    }
+}
+policy-options {
+    policy-statement underlay {
+        term 1 {
+            from {
+                route-filter 192.168.1.0/24 prefix-length-range /24-/32;
+                route-filter 192.168.255.0/24 prefix-length-range /24-/32;
+            }
+            then accept;
+        }
+    }
+}
+routing-instances {
+    mac-vrf1 {
+        instance-type mac-vrf;
+        protocols {
+            evpn {
+                encapsulation vxlan;
+                default-gateway no-gateway-community;
+                extended-vni-list 1;
+            }
+        }
+        vtep-source-interface lo0.0;
+        service-type vlan-based;
+        route-distinguisher 192.168.255.5:1;
+        vrf-target target:64512:1;
+        vlans {
+            vlan10 {
+                vlan-id 10;
+                interface ge-0/0/1.0;
+                vxlan {
+                    vni 1;
+                }
+            }
+        }
+    }
+}
+routing-options {
+    router-id 192.168.255.5;
+    autonomous-system 64512;
+}
+protocols {
+    bgp {
+        group underlay {
+            type external;
+            export underlay;
+            local-as 65005;
+            neighbor 192.168.1.6 {
+                peer-as 65001;
+            }
+        }
+        group overlay {
+            type internal;
+            local-address 192.168.255.5;
+            family evpn {
+                signaling;
+            }
+            peer-as 64512;
+            neighbor 192.168.255.1;
+            vpn-apply-export;
+        }
+    }
+}

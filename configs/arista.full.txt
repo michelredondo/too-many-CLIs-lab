@@ -1,0 +1,96 @@
+
+! Command: show running-config
+! device: arista (cEOSLab, EOS-4.33.1F-39879738.4331F (engineering build))
+!
+no aaa root
+!
+username admin privilege 15 role network-admin secret sha512 $6$0F442Ggq9HkGY1Py$u2.tmHUUVhbzsqfElOspXsOdWGjSWJlrM6YC3O9KRJAo.SJ9iRUTsGFGcA2NHfiGGtHA1MzG.X7mOUCBzxiHK0
+!
+management api http-commands
+   no shutdown
+!
+no service interface inactive port-id allocation disabled
+!
+transceiver qsfp default-mode 4x10G
+!
+service routing protocols model multi-agent
+!
+hostname arista
+!
+spanning-tree mode mstp
+!
+system l1
+   unsupported speed action error
+   unsupported error-correction action error
+!
+vlan 10
+!
+management api gnmi
+   transport grpc default
+!
+management api netconf
+   transport ssh default
+!
+interface Ethernet1
+   no switchport
+   ip address 192.168.1.5/31
+!
+interface Ethernet2
+   switchport trunk allowed vlan 10
+   switchport mode trunk
+!
+interface Loopback0
+   ip address 192.168.255.4/32
+!
+interface Management0
+!
+interface Vxlan1
+   vxlan source-interface Loopback0
+   vxlan udp-port 4789
+   vxlan vlan 10 vni 1
+   vxlan learn-restrict any
+!
+ip routing
+!
+ip prefix-list underlay seq 5 permit 192.168.1.0/24 ge 25 le 32
+ip prefix-list underlay seq 10 permit 192.168.255.0/24 ge 25 le 32
+!
+ip route 0.0.0.0/0 172.20.20.1
+!
+ipv6 route ::/0 3fff:172:20:20::1
+!
+route-map underlay permit 10
+   match ip address prefix-list underlay
+!
+router bgp 64512
+   router-id 192.168.255.4
+   neighbor overlay peer group
+   neighbor overlay remote-as 64512
+   neighbor overlay update-source Loopback0
+   neighbor overlay send-community extended
+   neighbor underlay peer group
+   neighbor underlay remote-as 65001
+   neighbor 192.168.1.4 peer group underlay
+   neighbor 192.168.1.4 local-as 65004 no-prepend replace-as fallback
+   neighbor 192.168.255.1 peer group overlay
+   !
+   vlan 10
+      rd 192.168.255.4:4
+      route-target both 64512:1
+      redistribute learned
+   !
+   address-family evpn
+      neighbor overlay activate
+   !
+   address-family ipv4
+      neighbor underlay activate
+      redistribute connected route-map underlay
+!
+router multicast
+   ipv4
+      software-forwarding kernel
+   !
+   ipv6
+      software-forwarding kernel
+!
+end

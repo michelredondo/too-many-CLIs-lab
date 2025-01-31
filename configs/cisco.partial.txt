@@ -1,0 +1,86 @@
+feature interface-vlan
+feature vn-segment-vlan-based
+feature nv overlay
+nv overlay evpn
+feature bgp
+feature fabric forwarding
+!
+!
+!
+vlan 1,10
+!
+!
+!
+vlan 10
+  vn-segment 1
+!
+!
+!
+ip prefix-list underlay seq 5 permit 192.168.1.0/24 ge 25 le 32
+ip prefix-list underlay seq 10 permit 192.168.255.0/24 ge 25 le 32
+!
+!
+!
+route-map underlay permit 10
+  match ip address prefix-list underlay
+!
+!
+!
+interface nve1
+  no shutdown
+  host-reachability protocol bgp
+  source-interface loopback0
+  member vni 1
+    ingress-replication protocol bgp
+!
+!
+!
+interface Ethernet1/1
+  ip address 192.168.1.3/31
+  no shutdown
+!
+!
+!
+interface Ethernet1/2
+  switchport
+  switchport mode trunk
+  switchport trunk allowed vlan 10
+  no shutdown
+!
+!
+!
+interface loopback0
+  ip address 192.168.255.3/32
+!
+!
+!
+router bgp 64512
+  router-id 192.168.255.3
+  log-neighbor-changes
+  address-family ipv4 unicast
+    redistribute direct route-map underlay
+  template peer overlay
+    remote-as 64512
+    update-source loopback0
+    address-family l2vpn evpn
+      send-community
+      send-community extended
+  template peer underlay
+    remote-as 65001
+    local-as 65003 no-prepend replace-as
+    address-family ipv4 unicast
+  neighbor 192.168.1.2
+    inherit peer underlay
+  neighbor 192.168.255.1
+    inherit peer overlay
+!
+!
+!
+evpn
+  vni 1 l2
+    rd 192.168.255.3:1
+    route-target import 64512:1
+    route-target export 64512:1
+!
+!
+!
