@@ -55,10 +55,6 @@ ip routing
 ip prefix-list underlay seq 5 permit 192.168.1.0/24 ge 25 le 32
 ip prefix-list underlay seq 10 permit 192.168.255.0/24 ge 25 le 32
 !
-ip route 0.0.0.0/0 172.20.20.1
-!
-ipv6 route ::/0 3fff:172:20:20::1
-!
 route-map underlay permit 10
    match ip address prefix-list underlay
 !
