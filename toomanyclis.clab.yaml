@@ -39,51 +39,93 @@ topology:
       kind: juniper_vjunosswitch
       startup-config: configs/juniper.partial.txt
 
-    cli-srl:
+# L2 EVPN Clients
+    l2cli-srl:
       kind: linux
       exec:
         - ip link add link eth1 name eth1.10 type vlan id 10
         - ip link set eth1.10 up
         - ip a add 10.10.10.1/24 dev eth1.10
 
-    cli-sros:
+    l2cli-sros:
       kind: linux
       exec:
         - ip link add link eth1 name eth1.10 type vlan id 10
         - ip link set eth1.10 up
         - ip a add 10.10.10.2/24 dev eth1.10
-    cli-cisco:
+    l2cli-cisco:
       kind: linux
       exec:
         - ip link add link eth1 name eth1.10 type vlan id 10
         - ip link set eth1.10 up
         - ip a add 10.10.10.3/24 dev eth1.10
-    cli-arista:
+    l2cli-arista:
       kind: linux
       exec:
         - ip link add link eth1 name eth1.10 type vlan id 10
         - ip link set eth1.10 up
         - ip a add 10.10.10.4/24 dev eth1.10
-    cli-juniper:
+    l2cli-juniper:
       kind: linux
       exec:
         - ip link add link eth1 name eth1.10 type vlan id 10
         - ip link set eth1.10 up
         - ip a add 10.10.10.5/24 dev eth1.10
 
+# L3 EVPN Clients
+    l3cli-srl:
+      kind: linux
+      exec:
+        - ip link add link eth1 name eth1.11 type vlan id 11
+        - ip link set eth1.11 up
+        - ip a add 10.11.1.2/24 dev eth1.11
+        - ip route add 10.11.0.0/16 via 10.11.1.1
+
+    l3cli-sros:
+      kind: linux
+      exec:
+        - ip link add link eth1 name eth1.11 type vlan id 11
+        - ip link set eth1.11 up
+        - ip a add 10.11.2.2/24 dev eth1.11
+        - ip route add 10.11.0.0/16 via 10.11.2.1
+    l3cli-cisco:
+      kind: linux
+      exec:
+        - ip link add link eth1 name eth1.11 type vlan id 11
+        - ip link set eth1.11 up
+        - ip a add 10.11.3.2/24 dev eth1.11
+        - ip route add 10.11.0.0/16 via 10.11.3.1
+    l3cli-arista:
+      kind: linux
+      exec:
+        - ip link add link eth1 name eth1.11 type vlan id 11
+        - ip link set eth1.11 up
+        - ip a add 10.11.4.2/24 dev eth1.11
+        - ip route add 10.11.0.0/16 via 10.11.4.1
+    l3cli-juniper:
+      kind: linux
+      exec:
+        - ip link add link eth1 name eth1.11 type vlan id 11
+        - ip link set eth1.11 up
+        - ip a add 10.11.5.2/24 dev eth1.11
+        - ip route add 10.11.0.0/16 via 10.11.5.1
 
   links:
     - endpoints: ["srl:e1-1", "sros:eth1"]
     - endpoints: ["srl:e1-2", "cisco:eth1"]
     - endpoints: ["srl:e1-3", "arista:eth1"]
     - endpoints: ["srl:e1-4", "juniper:eth1"]
+  
+  # L2 evpn clients
+    - endpoints: ["l2cli-srl:eth1", "srl:e1-11"]
+    - endpoints: ["l2cli-sros:eth1", "sros:eth2"]
+    - endpoints: ["l2cli-cisco:eth1", "cisco:eth2"]
+    - endpoints: ["l2cli-arista:eth1", "arista:eth2"]
+    - endpoints: ["l2cli-juniper:eth1", "juniper:eth2"]
 
-    - endpoints: ["cli-srl:eth1", "srl:e1-11"]
-    - endpoints: ["cli-sros:eth1", "sros:eth2"]
-    - endpoints: ["cli-cisco:eth1", "cisco:eth2"]
-    - endpoints: ["cli-arista:eth1", "arista:eth2"]
-    - endpoints: ["cli-juniper:eth1", "juniper:eth2"]
-
-
-
-
+  # L3 evpn clients
+    - endpoints: ["l3cli-srl:eth1", "srl:e1-12"]
+    - endpoints: ["l3cli-sros:eth1", "sros:eth3"]
+    - endpoints: ["l3cli-cisco:eth1", "cisco:eth3"]
+    - endpoints: ["l3cli-arista:eth1", "arista:eth3"]
+    - endpoints: ["l3cli-juniper:eth1", "juniper:eth3"]
