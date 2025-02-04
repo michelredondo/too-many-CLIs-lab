@@ -9,6 +9,7 @@ This **Containerlab** topology is designed to simulate a **multi-vendor** networ
 1. **EVPN VXLAN Interoperability**
 	- Validate **BGP EVPN** control plane functionality across vendors.
 	- Test **VXLAN** data plane encapsulation/decapsulation between different implementations.
+ 	- The lab features both layer-2 (mac-vrf1) and a layer-3 (ip-vrf1) EVPN services.
 
 2. **Configuration Testing & CLI Exploration**
 	- Use the lab as a sandbox to practice vendor-specific CLI commands.
@@ -47,27 +48,34 @@ containerlab deploy
 It takes ~7min for the lab to be operational
 
 ## Verification
-We use eBGP to exchange ipv4 prefixes and iBGP for the EVPN IMET and MAC/IP routes:
+We use eBGP to exchange ipv4 prefixes and iBGP for the EVPN IMET, MAC/IP routes and Type 5 IP Prefix Routes:
 ```bash
 A:srl# show network-instance default protocols bgp neighbor
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
 BGP neighbor summary for network-instance "default"
 Flags: S static, D dynamic, L discovered by LLDP, B BFD enabled, - disabled, * slow
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-+-------------------+----------------------------+-------------------+-------+----------+----------------+----------------+--------------+----------------------------+
-|     Net-Inst      |            Peer            |       Group       | Flags | Peer-AS  |     State      |     Uptime     |   AFI/SAFI   |       [Rx/Active/Tx]       |
-+===================+============================+===================+=======+==========+================+================+==============+============================+
-| default           | 192.168.1.1                | underlay          | S     | 65002    | established    | 0d:13h:24m:43s | ipv4-unicast | [2/1/8]                    |
-| default           | 192.168.1.3                | underlay          | S     | 65003    | established    | 0d:13h:18m:14s | ipv4-unicast | [2/1/8]                    |
-| default           | 192.168.1.5                | underlay          | S     | 65004    | established    | 0d:13h:27m:55s | ipv4-unicast | [2/1/8]                    |
-| default           | 192.168.1.7                | underlay          | S     | 65005    | established    | 0d:13h:25m:58s | ipv4-unicast | [2/1/8]                    |
-| default           | 192.168.255.2              | overlay           | S     | 64512    | established    | 0d:13h:23m:43s | evpn         | [2/2/8]                    |
-| default           | 192.168.255.3              | overlay           | S     | 64512    | established    | 0d:13h:18m:1s  | evpn         | [2/2/8]                    |
-| default           | 192.168.255.4              | overlay           | S     | 64512    | established    | 0d:13h:27m:49s | evpn         | [2/2/8]                    |
-| default           | 192.168.255.5              | overlay           | S     | 64512    | established    | 0d:13h:25m:53s | evpn         | [2/2/8]                    |
-+-------------------+----------------------------+-------------------+-------+----------+----------------+----------------+--------------+----------------------------+
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
++-----------------+-------------------------+-----------------+------+---------+--------------+--------------+-------------+-------------------------+
+|    Net-Inst     |          Peer           |      Group      | Flag | Peer-AS |    State     |    Uptime    |  AFI/SAFI   |     [Rx/Active/Tx]      |
+|                 |                         |                 |  s   |         |              |              |             |                         |
++=================+=========================+=================+======+=========+==============+==============+=============+=========================+
+| default         | 192.168.1.1             | underlay        | S    | 65002   | established  | 0d:0h:42m:55 | ipv4-       | [2/1/8]                 |
+|                 |                         |                 |      |         |              | s            | unicast     |                         |
+| default         | 192.168.1.3             | underlay        | S    | 65003   | established  | 0d:0h:36m:12 | ipv4-       | [2/1/8]                 |
+|                 |                         |                 |      |         |              | s            | unicast     |                         |
+| default         | 192.168.1.5             | underlay        | S    | 65004   | established  | 0d:0h:46m:8s | ipv4-       | [2/1/8]                 |
+|                 |                         |                 |      |         |              |              | unicast     |                         |
+| default         | 192.168.1.7             | underlay        | S    | 65005   | established  | 0d:0h:44m:15 | ipv4-       | [2/1/8]                 |
+|                 |                         |                 |      |         |              | s            | unicast     |                         |
+| default         | 192.168.255.2           | overlay         | S    | 64512   | established  | 0d:0h:42m:18 | evpn        | [3/3/17]                |
+|                 |                         |                 |      |         |              | s            |             |                         |
+| default         | 192.168.255.3           | overlay         | S    | 64512   | established  | 0d:0h:35m:59 | evpn        | [7/3/13]                |
+|                 |                         |                 |      |         |              | s            |             |                         |
+| default         | 192.168.255.4           | overlay         | S    | 64512   | established  | 0d:0h:46m:4s | evpn        | [3/3/17]                |
+| default         | 192.168.255.5           | overlay         | S    | 64512   | established  | 0d:0h:44m:9s | evpn        | [4/4/16]                |
++-----------------+-------------------------+-----------------+------+---------+--------------+--------------+-------------+-------------------------+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
 Summary:
 8 configured neighbors, 8 configured sessions are established, 0 disabled peers
 0 dynamic peers
@@ -76,7 +84,8 @@ Summary:
 ```
 We can also test the overlay connectivity by connecting to the different simulated clients:
 ```bash
-docker exec -it cli-srl bash
+#This is a client connected to the layer2 EVPN service (mac-vrf1)
+docker exec -it l2cli-srl bash
 
 [*]─[cli-srl]─[/]
 └──> ping 10.10.10.2
@@ -88,4 +97,18 @@ PING 10.10.10.2 (10.10.10.2) 56(84) bytes of data.
 rtt min/avg/max/mdev = 2.128/2.128/2.128/0.000 ms
 
 [*]─[cli-srl]─[/]
+
+#This is a client connected to the layer3 EVPN service (ip-vrf1)
+docker exec -it l3cli-sros bash
+
+[*]─[l3cli-sros]─[/]
+└──> ping 10.11.5.2
+PING 10.11.5.2 (10.11.5.2) 56(84) bytes of data.
+64 bytes from 10.11.5.2: icmp_seq=1 ttl=62 time=4.41 ms
+^C
+--- 10.11.5.2 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 4.405/4.405/4.405/0.000 ms
+
+[*]─[l3cli-sros]─[/]
 ```
