@@ -14,6 +14,15 @@ interfaces {
             vlan-id 10;
         }
     }
+    ge-0/0/2 {
+        vlan-tagging;
+        unit 0 {
+            vlan-id 11;
+            family inet {
+                address 10.11.5.1/24;
+            }
+        }
+    }
     lo0 {
         unit 0 {
             family inet {
@@ -23,6 +32,15 @@ interfaces {
     }
 }
 policy-options {
+    policy-statement export-ip-vrf1 {
+        term 1 {
+            from interface ge-0/0/2.0;
+            then accept;
+        }
+        term 100 {
+            then reject;
+        }
+    }
     policy-statement underlay {
         term 1 {
             from {
@@ -34,6 +52,22 @@ policy-options {
     }
 }
 routing-instances {
+    ip-vrf1 {
+        instance-type vrf;
+        protocols {
+            evpn {
+                ip-prefix-routes {
+                    advertise direct-nexthop;
+                    encapsulation vxlan;
+                    vni 2;
+                    export export-ip-vrf1;
+                }
+            }
+        }
+        interface ge-0/0/2.0;
+        route-distinguisher 192.168.255.5:2;
+        vrf-target target:64512:2;
+    }
     mac-vrf1 {
         instance-type mac-vrf;
         protocols {

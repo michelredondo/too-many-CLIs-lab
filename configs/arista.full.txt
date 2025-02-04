@@ -23,7 +23,9 @@ system l1
    unsupported speed action error
    unsupported error-correction action error
 !
-vlan 10
+vlan 10-11
+!
+vrf instance ip-vrf1
 !
 management api gnmi
    transport grpc default
@@ -39,18 +41,26 @@ interface Ethernet2
    switchport trunk allowed vlan 10
    switchport mode trunk
 !
+interface Ethernet3
+   switchport trunk allowed vlan 11
+   switchport mode trunk
+!
 interface Loopback0
    ip address 192.168.255.4/32
 !
-interface Management0
+interface Vlan11
+   vrf ip-vrf1
+   ip address virtual 10.11.4.1/24
 !
 interface Vxlan1
    vxlan source-interface Loopback0
    vxlan udp-port 4789
    vxlan vlan 10 vni 1
+   vxlan vrf ip-vrf1 vni 2
    vxlan learn-restrict any
 !
 ip routing
+ip routing vrf ip-vrf1
 !
 ip prefix-list underlay seq 5 permit 192.168.1.0/24 ge 25 le 32
 ip prefix-list underlay seq 10 permit 192.168.255.0/24 ge 25 le 32
@@ -71,7 +81,7 @@ router bgp 64512
    neighbor 192.168.255.1 peer group overlay
    !
    vlan 10
-      rd 192.168.255.4:4
+      rd 192.168.255.4:1
       route-target both 64512:1
       redistribute learned
    !
@@ -81,6 +91,12 @@ router bgp 64512
    address-family ipv4
       neighbor underlay activate
       redistribute connected route-map underlay
+   !
+   vrf ip-vrf1
+      rd 192.168.255.4:2
+      route-target import evpn 64512:2
+      route-target export evpn 64512:2
+      redistribute connected
 !
 router multicast
    ipv4

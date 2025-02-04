@@ -21,6 +21,12 @@ configure    port 1/1/c2/1 admin-state enable
 configure    port 1/1/c2/1 ethernet mode access
 configure    port 1/1/c2/1 ethernet encap-type dot1q
 configure    port 1/1/c2/1 ethernet mtu 9500
+configure    port 1/1/c3 admin-state enable
+configure    port 1/1/c3 connector breakout c1-100g
+configure    port 1/1/c3/1 admin-state enable
+configure    port 1/1/c3/1 ethernet mode access
+configure    port 1/1/c3/1 ethernet encap-type dot1q
+configure    port 1/1/c3/1 ethernet mtu 9500
 configure    router "Base" autonomous-system 65002
 configure    router "Base" ecmp 2
 configure    router "Base" interface "system" ipv4 primary address 192.168.255.2
@@ -52,9 +58,21 @@ configure    service vpls "mac-vrf1" service-mtu 9000
 configure    service vpls "mac-vrf1" fdb table size 8192
 configure    service vpls "mac-vrf1" fdb mac-move admin-state enable
 configure    service vpls "mac-vrf1" vxlan instance 1 vni 1
-configure    service vpls "mac-vrf1" bgp 1 route-distinguisher "192.168.255.2:2"
+configure    service vpls "mac-vrf1" bgp 1 route-distinguisher "192.168.255.2:1"
 configure    service vpls "mac-vrf1" bgp 1 route-target export "target:64512:1"
 configure    service vpls "mac-vrf1" bgp 1 route-target import "target:64512:1"
 configure    service vpls "mac-vrf1" bgp-evpn vxlan 1 admin-state enable
 configure    service vpls "mac-vrf1" bgp-evpn vxlan 1 vxlan-instance 1
 configure    service vpls "mac-vrf1" sap 1/1/c2/1:10 admin-state enable
+configure    service system bgp evpn ip-prefix-routes interface-less vxlan-router-mac 00:01:00:00:00:00
+configure    service vprn "ip-vrf1" admin-state enable
+configure    service vprn "ip-vrf1" service-id 2
+configure    service vprn "ip-vrf1" customer "1"
+configure    service vprn "ip-vrf1" bgp-evpn vxlan 1 admin-state enable
+configure    service vprn "ip-vrf1" bgp-evpn vxlan 1 route-distinguisher "192.168.255.2:2"
+configure    service vprn "ip-vrf1" bgp-evpn vxlan 1 vxlan-instance 1
+configure    service vprn "ip-vrf1" bgp-evpn vxlan 1 vrf-target community "target:64512:2"
+configure    service vprn "ip-vrf1" interface "c3" ipv4 primary address 10.11.2.1
+configure    service vprn "ip-vrf1" interface "c3" ipv4 primary prefix-length 24
+configure { service vprn "ip-vrf1" interface "c3" sap 1/1/c3/1:11 } 
+configure service vprn "ip-vrf1" vxlan instance 1 vni 2
