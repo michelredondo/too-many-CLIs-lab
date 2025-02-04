@@ -87,16 +87,17 @@ We can also test the overlay connectivity by connecting to the different simulat
 #This is a client connected to the layer2 EVPN service (mac-vrf1)
 docker exec -it l2cli-srl bash
 
-[*]─[cli-srl]─[/]
-└──> ping 10.10.10.2
-PING 10.10.10.2 (10.10.10.2) 56(84) bytes of data.
-64 bytes from 10.10.10.2: icmp_seq=1 ttl=64 time=2.13 ms
+[*]─[l2cli-srl]─[/]
+└──> ping 10.10.10.5
+PING 10.10.10.5 (10.10.10.5) 56(84) bytes of data.
+64 bytes from 10.10.10.5: icmp_seq=1 ttl=64 time=2.96 ms
 ^C
---- 10.10.10.2 ping statistics ---
+--- 10.10.10.5 ping statistics ---
 1 packets transmitted, 1 received, 0% packet loss, time 0ms
-rtt min/avg/max/mdev = 2.128/2.128/2.128/0.000 ms
+rtt min/avg/max/mdev = 2.955/2.955/2.955/0.000 ms
 
-[*]─[cli-srl]─[/]
+[*]─[l2cli-srl]─[/]
+
 
 #This is a client connected to the layer3 EVPN service (ip-vrf1)
 docker exec -it l3cli-sros bash
