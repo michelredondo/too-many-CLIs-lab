@@ -9,7 +9,7 @@ This **Containerlab** topology is designed to simulate a **multi-vendor** networ
 1. **EVPN VXLAN Interoperability**
 	- Validate **BGP EVPN** control plane functionality across vendors.
 	- Test **VXLAN** data plane encapsulation/decapsulation between different implementations.
- 	- The lab features both layer-2 (mac-vrf1) and a layer-3 (ip-vrf1) EVPN services.
+ 	- The lab features both layer-2 (mac-vrf1) and layer-3 (ip-vrf1) EVPN services.
 
 2. **Configuration Testing & CLI Exploration**
 	- Use the lab as a sandbox to practice vendor-specific CLI commands.
